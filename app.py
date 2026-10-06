@@ -1,22 +1,30 @@
-
 import streamlit as st
 import joblib
 import numpy as np
 
+# Page configuration
+st.set_page_config(
+    page_title="Breast Cancer Diagnosis Predictor",
+    page_icon="🩺",
+    layout="wide"
+)
 
-# Load trained model and scaler
+# Load model and scaler
 model = joblib.load("model.joblib")
 scaler = joblib.load("scaler.joblib")
 
-
-# Page title
-st.title("Breast Cancer Diagnosis Predictor")
+# Title
+st.title("🩺 Breast Cancer Diagnosis Predictor")
 
 st.write(
-    "Enter the 30 tumor measurements below "
-    "to predict whether the tumor is malignant or benign."
+    "This application uses a machine learning model to classify "
+    "tumor measurements as **Malignant** or **Benign**."
 )
 
+st.info(
+    "⚠️ Educational project only. This application is not a medical "
+    "diagnostic tool and should not be used for real medical decisions."
+)
 
 # Feature names
 feature_names = [
@@ -52,32 +60,80 @@ feature_names = [
     "worst fractal dimension"
 ]
 
+# Organize inputs into three sections
+st.subheader("Enter Tumor Measurements")
 
-# Create input fields
+col1, col2, col3 = st.columns(3)
+
 inputs = []
 
-for feature in feature_names:
-    value = st.number_input(
-        feature,
-        value=0.0
-    )
+for i, feature in enumerate(feature_names):
+
+    if i < 10:
+        with col1:
+            value = st.number_input(
+                feature,
+                value=0.0,
+                format="%.6f",
+                key=f"feature_{i}"
+            )
+
+    elif i < 20:
+        with col2:
+            value = st.number_input(
+                feature,
+                value=0.0,
+                format="%.6f",
+                key=f"feature_{i}"
+            )
+
+    else:
+        with col3:
+            value = st.number_input(
+                feature,
+                value=0.0,
+                format="%.6f",
+                key=f"feature_{i}"
+            )
+
     inputs.append(value)
 
+st.divider()
 
 # Prediction button
-if st.button("Predict"):
+if st.button("🔍 Predict Diagnosis", use_container_width=True):
 
-    # Convert input into NumPy array
     input_data = np.array(inputs).reshape(1, -1)
 
-    # Scale input
+    # Apply the same scaling used during training
     scaled_input = scaler.transform(input_data)
 
     # Make prediction
     prediction = model.predict(scaled_input)[0]
 
-    # Display result
+    st.subheader("Prediction Result")
+
     if prediction == 0:
-        st.error("Prediction: Malignant (Cancerous)")
+        st.error("🔴 Prediction: Malignant (Cancerous)")
     else:
-        st.success("Prediction: Benign (Non-cancerous)")
+        st.success("🟢 Prediction: Benign (Non-cancerous)")
+
+# Sidebar
+st.sidebar.title("About the Project")
+
+st.sidebar.write(
+    "This project was developed as part of the "
+    "BIOTECHTREK AI in Healthcare & Drug Discovery Bootcamp."
+)
+
+st.sidebar.write("**Model:** Random Forest Classifier")
+st.sidebar.write("**Number of Features:** 30")
+st.sidebar.write("**Accuracy:** 95.61%")
+st.sidebar.write("**Dataset:** Breast Cancer Wisconsin Diagnostic Dataset")
+
+st.sidebar.divider()
+
+st.sidebar.caption(
+    "For educational purposes only. "
+    "Not intended for clinical diagnosis."
+)
